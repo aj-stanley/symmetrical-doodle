@@ -2,5 +2,6 @@
 name = "symmetrical-doodle"
 version = "0.1.0"
 edition = "2024"
+description = "Proof of Concept (PoC) to investigate the latency introduced by adding an empty middleware in the Rust server using the ntex framework."
 
 [dependencies]

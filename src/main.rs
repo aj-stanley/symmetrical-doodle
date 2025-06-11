@@ -1,7 +1,23 @@
 use ntex::web;
+use std::sync::{Arc, Mutex};
 
 struct AppState {
     app_name: String,
+}
+
+#[derive(Clone)]
+struct AppStateWithCounter {
+    counter: Arc<Mutex<i32>>,
+}
+
+async fn index(
+    app_data: web::types::State<AppState>,
+    counter_data: web::types::State<AppStateWithCounter>
+) -> String {
+    let mut counter = counter_data.counter.lock().unwrap();
+    *counter += 1;
+    
+    format!("Request number: {counter} for app: {}", app_data.app_name)
 }
 
 #[web::get("/")]
@@ -20,13 +36,17 @@ async fn echo(req_body: String) -> impl web::Responder {
     web::HttpResponse::Ok().body(req_body)
 }
 
-async fn hey() -> impl web::Responder {
-    web::HttpResponse::Ok().body("Hey!")
+async fn hey(data: web::types::State<AppState>) -> String {
+    let app_name = &data.app_name;
+    format!("Hey {app_name}!")
 }
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
-    web::HttpServer::new(|| {
+    let counter = AppStateWithCounter {
+        counter: Arc::new(Mutex::new(0)),
+    };
+    web::HttpServer::new(move || {
         web::App::new()
             .service(web::scope("/api").service(hello))
             .state(AppState {
@@ -35,6 +55,8 @@ async fn main() -> std::io::Result<()> {
             .service(hello_name)
             .service(echo)
             .route("/hey", web::get().to(hey))
+            .state(counter.clone())
+            .route("/", web::get().to(index))
     })
     .bind("127.0.0.1:8080")?
     .run()

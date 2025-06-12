@@ -25,7 +25,7 @@ async fn hello() -> impl web::Responder {
     web::HttpResponse::Ok().body("Hello!")
 }
 #[web::get("/st/{name}")]
-async fn hello_name(data: web::types::State<AppState>, req: web::types::Path<String>) -> String {
+async fn greet(data: web::types::State<AppState>, req: web::types::Path<String>) -> String {
     let name = req.into_inner();
     let app_name = &data.app_name;
     format!("Hello {app_name}!, {name}!")
@@ -52,7 +52,7 @@ async fn main() -> std::io::Result<()> {
             .state(AppState {
                 app_name: String::from("ntex"),
             })
-            .service(hello_name)
+            .service(greet)
             .service(echo)
             .route("/hey", web::get().to(hey))
             .state(counter.clone())

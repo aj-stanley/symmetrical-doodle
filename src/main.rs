@@ -50,7 +50,7 @@ async fn main() -> std::io::Result<()> {
         web::App::new()
             .service(web::scope("/api").service(hello))
             .state(AppState {
-                app_name: String::from("Ntex"),
+                app_name: String::from("ntex"),
             })
             .service(hello_name)
             .service(echo)
